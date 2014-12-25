@@ -57,18 +57,19 @@ class TodayViewController: UIViewController, NCWidgetProviding {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        preferredContentSize.height = 160
+        preferredContentSize.height = 176
         updateButtons()
-//        var gradientLayer = CAGradientLayer()
-//        gradientLayer.frame = view.frame
-//        gradientLayer.colors = [UIColor.UIColorFromRGB(0x55EFCB, alpha: 0.3).CGColor, UIColor.UIColorFromRGB(0x5BCAFF, alpha: 0.3).CGColor]
-//        gradientLayer.locations = [0.0, 1.0]
-//        view.layer.addSublayer(gradientLayer)
     }
     
     func updateButtons() {
-        for i in 0...11 {
+        for i in 1...12 {
             if let button = view.viewWithTag(i) as? UIButton {
+                // TODO: Update button appearance
+//                button.layer.borderWidth = 1
+//                button.layer.borderColor = button.currentTitleColor.CGColor
+                button.layer.cornerRadius = button.frame.width / 2
+                button.backgroundColor = UIColor.UIColorFromRGB(0xF7F7F7, alpha: 0.1)
+                
 //                var gradientLayer = CAGradientLayer()
 //                gradientLayer.frame = button.frame
 //                gradientLayer.colors = [UIColor.UIColorFromRGB(0x55EFCB, alpha: 0.3).CGColor, UIColor.UIColorFromRGB(0x5BCAFF, alpha: 0.3).CGColor]
@@ -96,13 +97,13 @@ class TodayViewController: UIViewController, NCWidgetProviding {
     
     @IBAction func didClickButton(sender: UIButton) {
         switch sender.tag {
-        case 0...9:
-            currentValue += String(sender.tag)
-        case 10:
-            currentValue += "."
-        case 11:
-            clear()
+        case 1...11:
+            if let title = sender.currentTitle {
+                currentValue += title
+            }
         case 12:
+            clear()
+        case 13:
             changeLevel()
         default:
             return
