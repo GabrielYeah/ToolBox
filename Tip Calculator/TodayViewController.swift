@@ -75,7 +75,7 @@ class TodayViewController: UIViewController, NCWidgetProviding {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        preferredContentSize.height = 176
+        preferredContentSize.height = 172
         updateButtons()
         updateResult()
         resultButton.titleLabel?.adjustsFontSizeToFitWidth = true;
@@ -98,6 +98,14 @@ class TodayViewController: UIViewController, NCWidgetProviding {
     
     func widgetPerformUpdateWithCompletionHandler(completionHandler: ((NCUpdateResult) -> Void)!) {
         completionHandler(NCUpdateResult.NewData)
+    }
+    
+    func widgetMarginInsetsForProposedMarginInsets
+        (defaultMarginInsets: UIEdgeInsets) -> (UIEdgeInsets) {
+            var inset = defaultMarginInsets
+            inset.bottom = 10
+            inset.top = 10
+            return inset
     }
     
     @IBAction func didClickButton(sender: UIButton) {
