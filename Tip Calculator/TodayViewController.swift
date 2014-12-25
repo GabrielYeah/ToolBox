@@ -36,6 +36,19 @@ enum TipLevel {
         }
         return color
     }
+    
+    func factor() -> Double {
+        var factor = 1.0
+        switch self {
+        case .Satisfied:
+            factor = 1.1835
+        case .Unsatisfied:
+            factor = 1.0917
+        case .Standard:
+            factor = 1.1376
+        }
+        return factor
+    }
 }
 
 class TodayViewController: UIViewController, NCWidgetProviding {
@@ -43,9 +56,10 @@ class TodayViewController: UIViewController, NCWidgetProviding {
     @IBOutlet weak var resultButton: UIButton!
     @IBOutlet weak var currentValueLabel: UILabel!
     
-    var currentValue : String = "" {
+    var currentValue : String = "0" {
         didSet {
             currentValueLabel.text = currentValue
+            resultButton.setTitle(String(format: "%.2f", (currentValue as NSString).doubleValue * tipLevel.factor()), forState: .Normal)
         }
     }
     
@@ -59,52 +73,47 @@ class TodayViewController: UIViewController, NCWidgetProviding {
         super.viewDidLoad()
         preferredContentSize.height = 176
         updateButtons()
+        updateResult()
+        resultButton.titleLabel?.adjustsFontSizeToFitWidth = true;
+        resultButton.titleLabel?.minimumScaleFactor = 0.5;
     }
     
     func updateButtons() {
         for i in 1...12 {
             if let button = view.viewWithTag(i) as? UIButton {
-                // TODO: Update button appearance
-//                button.layer.borderWidth = 1
-//                button.layer.borderColor = button.currentTitleColor.CGColor
                 button.layer.cornerRadius = button.frame.width / 2
                 button.backgroundColor = UIColor.UIColorFromRGB(0xF7F7F7, alpha: 0.1)
-                
-//                var gradientLayer = CAGradientLayer()
-//                gradientLayer.frame = button.frame
-//                gradientLayer.colors = [UIColor.UIColorFromRGB(0x55EFCB, alpha: 0.3).CGColor, UIColor.UIColorFromRGB(0x5BCAFF, alpha: 0.3).CGColor]
-//                gradientLayer.locations = [0.0, 1.0]
-//                button.layer.addSublayer(gradientLayer)
             }
         }
     }
     
     func updateResult() {
         resultButton.setTitleColor(tipLevel.color(), forState: .Normal)
+        resultButton.setTitle(String(format: "%.1f", (currentValue as NSString).doubleValue * tipLevel.factor()), forState: .Normal)
     }
     
     func widgetPerformUpdateWithCompletionHandler(completionHandler: ((NCUpdateResult) -> Void)!) {
         completionHandler(NCUpdateResult.NewData)
     }
     
-    func clear() {
-        currentValue = "0"
-    }
-    
-    func changeLevel() {
-        tipLevel.changeLevel()
-    }
-    
     @IBAction func didClickButton(sender: UIButton) {
         switch sender.tag {
-        case 1...11:
+        case 1...10:
+            if let title = sender.currentTitle {
+                if currentValue == "0" {
+                    currentValue = title
+                } else {
+                    currentValue += title
+                }
+            }
+        case 11:
             if let title = sender.currentTitle {
                 currentValue += title
             }
         case 12:
-            clear()
+            currentValue = "0"
         case 13:
-            changeLevel()
+            tipLevel.changeLevel()
         default:
             return
         }
