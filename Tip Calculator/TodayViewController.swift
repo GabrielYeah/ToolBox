@@ -52,7 +52,7 @@ enum TipLevel {
 }
 
 class TodayViewController: UIViewController, NCWidgetProviding {
-    
+    // MARK: Properties
     @IBOutlet weak var resultButton: UIButton!
     @IBOutlet weak var currentValueLabel: UILabel!
     @IBOutlet weak var functionButton: UIButton!
@@ -67,12 +67,17 @@ class TodayViewController: UIViewController, NCWidgetProviding {
         }
     }
     
+    var currentResult : Double {
+        return (currentValue as NSString).doubleValue * tipLevel.factor() / Double(sharingCount)
+    }
+    
     var tipLevel : TipLevel = .Standard {
         didSet {
             updateResult()
         }
     }
     
+    // MARK: View Methods
     override func viewDidLoad() {
         super.viewDidLoad()
         preferredContentSize.height = 172
@@ -93,11 +98,7 @@ class TodayViewController: UIViewController, NCWidgetProviding {
     
     func updateResult() {
         resultButton.setTitleColor(tipLevel.color(), forState: .Normal)
-        resultButton.setTitle(String(format: "%.1f", (currentValue as NSString).doubleValue * tipLevel.factor() / Double(sharingCount)), forState: .Normal)
-    }
-    
-    func widgetPerformUpdateWithCompletionHandler(completionHandler: ((NCUpdateResult) -> Void)!) {
-        completionHandler(NCUpdateResult.NewData)
+        resultButton.setTitle(String(format: "%.1f", currentResult), forState: .Normal)
     }
     
     func widgetMarginInsetsForProposedMarginInsets
@@ -108,35 +109,48 @@ class TodayViewController: UIViewController, NCWidgetProviding {
             return inset
     }
     
+    // MARK: Data Methods
     @IBAction func didClickButton(sender: UIButton) {
         switch sender.tag {
         case 1...10:
-            if let title = sender.currentTitle {
-                if currentValue == "0" {
-                    currentValue = title
-                } else {
-                    currentValue += title
-                }
-            }
+            appendNewCharacter(sender.currentTitle)
         case 11:
-            if (!sharing) {
-                currentValue += "."
-                sharing = true
-            } else {
-                sharingCount++
-                updateResult()
-            }
-            functionButton.setTitle("+\(sharingCount)", forState: .Normal)
+            handleSharingButton()
         case 12:
-            sharing = false
-            currentValue = "0"
-            sharingCount = 1
-            functionButton.setTitle(".", forState: .Normal)
+            clearContext()
         case 13:
             tipLevel.changeLevel()
         default:
             return
         }
+    }
+    
+    func appendNewCharacter(title : String?) {
+        if let title = title {
+            if currentValue == "0" {
+                currentValue = title
+            } else {
+                currentValue += title
+            }
+        }
+    }
+    
+    func handleSharingButton() {
+        if (!sharing) {
+            sharing = true
+            currentValue += "."
+        } else {
+            sharingCount++
+            updateResult()
+        }
+        functionButton.setTitle("+\(sharingCount)", forState: .Normal)
+    }
+    
+    func clearContext() {
+        sharing = false
+        currentValue = "0"
+        sharingCount = 1
+        functionButton.setTitle(".", forState: .Normal)
     }
 }
 
