@@ -55,6 +55,10 @@ class TodayViewController: UIViewController, NCWidgetProviding {
     
     @IBOutlet weak var resultButton: UIButton!
     @IBOutlet weak var currentValueLabel: UILabel!
+    @IBOutlet weak var functionButton: UIButton!
+    
+    var sharing : Bool = false
+    var sharingCount = 1
     
     var currentValue : String = "0" {
         didSet {
@@ -89,7 +93,7 @@ class TodayViewController: UIViewController, NCWidgetProviding {
     
     func updateResult() {
         resultButton.setTitleColor(tipLevel.color(), forState: .Normal)
-        resultButton.setTitle(String(format: "%.1f", (currentValue as NSString).doubleValue * tipLevel.factor()), forState: .Normal)
+        resultButton.setTitle(String(format: "%.1f", (currentValue as NSString).doubleValue * tipLevel.factor() / Double(sharingCount)), forState: .Normal)
     }
     
     func widgetPerformUpdateWithCompletionHandler(completionHandler: ((NCUpdateResult) -> Void)!) {
@@ -108,10 +112,20 @@ class TodayViewController: UIViewController, NCWidgetProviding {
             }
         case 11:
             if let title = sender.currentTitle {
-                currentValue += title
+                if (!sharing) {
+                    currentValue += title
+                    sharing = true
+                } else {
+                    sharingCount++
+                    updateResult()
+                }
+                functionButton.setTitle("+\(sharingCount)", forState: .Normal)
             }
         case 12:
+            sharing = false
             currentValue = "0"
+            sharingCount = 1
+            functionButton.setTitle(".", forState: .Normal)
         case 13:
             tipLevel.changeLevel()
         default:
