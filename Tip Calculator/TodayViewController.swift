@@ -41,13 +41,13 @@ enum TipLevel {
         var factor = 1.0
         switch self {
         case .Satisfied:
-            factor = 1.1835
+            factor = 0.2
         case .Unsatisfied:
-            factor = 1.0917
+            factor = 0.1
         case .Standard:
-            factor = 1.1376
+            factor = 0.15
         }
-        return factor
+        return 1.0 / 1.09 * factor + 1
     }
 }
 
@@ -57,13 +57,13 @@ class TodayViewController: UIViewController, NCWidgetProviding {
     @IBOutlet weak var currentValueLabel: UILabel!
     @IBOutlet weak var functionButton: UIButton!
     
-    var sharing : Bool = false
+    var sharing = false
     var sharingCount = 1
     
     var currentValue : String = "0" {
         didSet {
             currentValueLabel.text = currentValue
-            resultButton.setTitle(String(format: "%.2f", (currentValue as NSString).doubleValue * tipLevel.factor()), forState: .Normal)
+            updateResult()
         }
     }
     
@@ -78,8 +78,6 @@ class TodayViewController: UIViewController, NCWidgetProviding {
         preferredContentSize.height = 172
         updateButtons()
         updateResult()
-        resultButton.titleLabel?.adjustsFontSizeToFitWidth = true;
-        resultButton.titleLabel?.minimumScaleFactor = 0.5;
     }
     
     func updateButtons() {
@@ -89,6 +87,8 @@ class TodayViewController: UIViewController, NCWidgetProviding {
                 button.backgroundColor = UIColor.UIColorFromRGB(0xF7F7F7, alpha: 0.1)
             }
         }
+        resultButton.titleLabel?.adjustsFontSizeToFitWidth = true;
+        resultButton.titleLabel?.minimumScaleFactor = 0.5;
     }
     
     func updateResult() {
@@ -119,16 +119,14 @@ class TodayViewController: UIViewController, NCWidgetProviding {
                 }
             }
         case 11:
-            if let title = sender.currentTitle {
-                if (!sharing) {
-                    currentValue += title
-                    sharing = true
-                } else {
-                    sharingCount++
-                    updateResult()
-                }
-                functionButton.setTitle("+\(sharingCount)", forState: .Normal)
+            if (!sharing) {
+                currentValue += "."
+                sharing = true
+            } else {
+                sharingCount++
+                updateResult()
             }
+            functionButton.setTitle("+\(sharingCount)", forState: .Normal)
         case 12:
             sharing = false
             currentValue = "0"
