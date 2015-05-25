@@ -13,26 +13,28 @@ enum TipLevel {
     case Satisfied
     case Standard
     case Unsatisfied
-    mutating func changeLevel() {
-        switch self {
-        case .Satisfied:
+    mutating func changeLevel(level : NSInteger) {
+        switch level {
+        case 1:
             self = .Unsatisfied
-        case .Unsatisfied:
+        case 2:
             self = .Standard
-        case .Standard:
+        case 3:
             self = .Satisfied
+        default:
+            self = .Standard
         }
     }
     
-    func color() -> UIColor {
+    func color(alpha : CGFloat) -> UIColor {
         var color = UIColor.whiteColor()
         switch self {
         case .Satisfied:
-            color = UIColor.UIColorFromRGB(0x09BB44, alpha: 1.0)
+            color = UIColor.UIColorFromRGB(0x09BB44, alpha: alpha)
         case .Unsatisfied:
-            color = UIColor.UIColorFromRGB(0xEA5251, alpha: 1.0)
+            color = UIColor.UIColorFromRGB(0xEA5251, alpha: alpha)
         case .Standard:
-            color = UIColor.UIColorFromRGB(0x0096DA, alpha: 1.0)
+            color = UIColor.UIColorFromRGB(0x0096DA, alpha: alpha)
         }
         return color
     }
@@ -47,28 +49,23 @@ enum TipLevel {
         case .Standard:
             factor = 0.15
         }
-        return 1.0 / 1.09 * factor + 1
+        return 1.0 / 1.09 * factor + 1.0
     }
 }
 
 class TodayViewController: UIViewController, NCWidgetProviding {
     // MARK: Properties
-    @IBOutlet weak var resultButton: UIButton!
     @IBOutlet weak var currentValueLabel: UILabel!
     @IBOutlet weak var functionButton: UIButton!
+    @IBOutlet weak var resultLabel: UILabel!
     
     var sharing = false
-    var sharingCount = 1
+    var sharingCount : Int = 1
     
-    var currentValue : String = "0" {
+    var currentValue : Double = 0.0 {
         didSet {
-            currentValueLabel.text = currentValue
             updateResult()
         }
-    }
-    
-    var currentResult : Double {
-        return (currentValue as NSString).doubleValue * tipLevel.factor() / Double(sharingCount)
     }
     
     var tipLevel : TipLevel = .Standard {
@@ -77,80 +74,87 @@ class TodayViewController: UIViewController, NCWidgetProviding {
         }
     }
     
+    var currentResult : Double {
+        return currentValue * tipLevel.factor() / Double(sharingCount * 100)
+    }
+    
     // MARK: View Methods
     override func viewDidLoad() {
         super.viewDidLoad()
-        preferredContentSize.height = 172
+        preferredContentSize.height = 220
         updateButtons()
         updateResult()
     }
     
     func updateButtons() {
-        for i in 1...12 {
+        for i in 1...15 {
             if let button = view.viewWithTag(i) as? UIButton {
-                button.layer.cornerRadius = button.frame.width / 2
-                button.backgroundColor = UIColor.UIColorFromRGB(0xF7F7F7, alpha: 0.1)
+                switch i {
+                case 12:
+                    button.backgroundColor = TipLevel.Unsatisfied.color(0.5)
+                case 13:
+                    button.backgroundColor = TipLevel.Standard.color(0.5)
+                case 14:
+                    button.backgroundColor = TipLevel.Satisfied.color(0.5)
+                case 15:
+                    button.backgroundColor = UIColor.UIColorFromRGB(0xD2691E, alpha: 0.5)
+                default:
+                    button.backgroundColor = UIColor.UIColorFromRGB(0xF7F7F7, alpha: 0.1)
+                }
             }
         }
-        resultButton.titleLabel?.adjustsFontSizeToFitWidth = true;
-        resultButton.titleLabel?.minimumScaleFactor = 0.5;
+        resultLabel.adjustsFontSizeToFitWidth = true;
+        resultLabel.minimumScaleFactor = 0.5;
     }
     
     func updateResult() {
-        resultButton.setTitleColor(tipLevel.color(), forState: .Normal)
-        resultButton.setTitle(String(format: "%.1f", currentResult), forState: .Normal)
+        currentValueLabel.text = String(format: "%.2f", currentValue / 100)
+        resultLabel.text = String(format: "%.2f", currentResult)
     }
     
     func widgetMarginInsetsForProposedMarginInsets
         (defaultMarginInsets: UIEdgeInsets) -> (UIEdgeInsets) {
             var inset = defaultMarginInsets
-            inset.bottom = 10
-            inset.top = 10
+            inset.bottom = 0
+            inset.top = 0
+            inset.left = 0
+            inset.right = 0
             return inset
     }
     
     // MARK: Data Methods
     @IBAction func didClickButton(sender: UIButton) {
         switch sender.tag {
-        case 1...10:
-            appendNewCharacter(sender.currentTitle)
-        case 11:
+        case 15:
             handleSharingButton()
-        case 12:
+        case 11:
             clearContext()
-        case 13:
-            tipLevel.changeLevel()
+        case 12...14:
+            tipLevel.changeLevel(sender.tag - 11)
+            resultLabel.textColor = tipLevel.color(1)
         default:
-            return
+            appendNewCharacter(sender.currentTitle)
         }
     }
     
     func appendNewCharacter(title : String?) {
         if let title = title {
-            if currentValue == "0" {
-                currentValue = title
-            } else {
-                currentValue += title
-            }
+            currentValue = currentValue * 10.0 + Double(title.toInt()!)
         }
     }
     
     func handleSharingButton() {
-        if (!sharing) {
-            sharing = true
-            currentValue += "."
-        } else {
-            sharingCount++
-            updateResult()
-        }
+        sharingCount++
+        updateResult()
         functionButton.setTitle("+\(sharingCount)", forState: .Normal)
     }
     
     func clearContext() {
         sharing = false
-        currentValue = "0"
         sharingCount = 1
-        functionButton.setTitle(".", forState: .Normal)
+        functionButton.setTitle("+\(sharingCount)", forState: .Normal)
+        currentValue = 0.0
+        updateResult()
     }
 }
 
