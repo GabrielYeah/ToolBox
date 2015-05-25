@@ -86,6 +86,10 @@ class TodayViewController: UIViewController, NCWidgetProviding {
         updateResult()
     }
     
+    override func viewWillAppear(animated: Bool) {
+        updateResult()
+    }
+    
     func updateButtons() {
         for i in 1...15 {
             if let button = view.viewWithTag(i) as? UIButton {
